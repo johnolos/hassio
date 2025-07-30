@@ -5,6 +5,7 @@ blueprint:
     set a helper boolean to “on” and automatically clear it after a given delay
     so downstream automations know when to resume.
   domain: automation
+
   input:
     light:
       name: Light
@@ -12,18 +13,20 @@ blueprint:
       selector:
         entity:
           domain: light
+
     override_flag:
       name: Override Flag
       description: The input_boolean helper to turn on/off
       selector:
         entity:
           domain: input_boolean
+
     clear_delay:
       name: Clear Delay
       description: How long after the adjustment to clear the flag
       default: 02:00:00
       selector:
-        time_duration: {}
+        duration: {}
 
 trigger:
   - platform: state
@@ -31,6 +34,7 @@ trigger:
     attribute: brightness
     id: manual_adjust
 
+conditions:
   - condition: and
     conditions:
       - condition: template

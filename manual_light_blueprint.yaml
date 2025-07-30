@@ -1,0 +1,53 @@
+blueprint:
+  name: Manual Light Override Flag
+  description: >
+    When you manually adjust a light’s brightness via UI (not by automation),
+    set a helper boolean to “on” and automatically clear it after a given delay
+    so downstream automations know when to resume.
+  domain: automation
+  input:
+    light:
+      name: Light
+      description: The light entity to monitor for manual brightness changes
+      selector:
+        entity:
+          domain: light
+    override_flag:
+      name: Override Flag
+      description: The input_boolean helper to turn on/off
+      selector:
+        entity:
+          domain: input_boolean
+    clear_delay:
+      name: Clear Delay
+      description: How long after the adjustment to clear the flag
+      default: 02:00:00
+      selector:
+        time_duration: {}
+
+trigger:
+  - platform: state
+    entity_id: !input light
+    attribute: brightness
+    id: manual_adjust
+
+  - condition: and
+    conditions:
+      - condition: template
+        value_template: "{{ trigger.to_state.context.id != none }}"
+      - condition: template
+        value_template: "{{ trigger.to_state.context.parent_id == none }}"
+
+action:
+  # 1) set the override flag
+  - service: input_boolean.turn_on
+    target:
+      entity_id: !input override_flag
+
+  # 2) wait then clear it
+  - delay: !input clear_delay
+  - service: input_boolean.turn_off
+    target:
+      entity_id: !input override_flag
+
+mode: single
